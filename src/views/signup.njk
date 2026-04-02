@@ -7,19 +7,56 @@
 <body>
   <h1>Inscription</h1>
 
-   {% if error %}
-      <p style="color:red;">{{ error }}</p>
-   {% endif %}
-  <form class="panel auth-panel" action="/signup" method="post">
-    <h1>Creer un compte</h1>
-    <label for="username">Nom d'utilisateur</label>
-    <input id="username" name="username" type="text" required />
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
 
-    <label for="password">Mot de passe</label>
-    <input id="password" name="password" type="password" required />
+  <form method="POST" action="/signup" novalidate>
+    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
-    <label for="passwordConfirm">Confirmation</label>
-    <input id="passwordConfirm" name="passwordConfirm" type="password" required />
+    <div>
+      <label for="username">Nom d'utilisateur</label>
+      <input
+        id="username"
+        type="text"
+        name="username"
+        value="{{ old.username | default('') }}"
+        required
+        minlength="3"
+        maxlength="50"
+      >
+    </div>
+
+    <div>
+      <label for="password">Mot de passe</label>
+      <input
+        id="password"
+        type="password"
+        name="password"
+        required
+        minlength="12"
+      >
+    </div>
+
+    <div>
+      <label for="passwordConfirm">Confirmation du mot de passe</label>
+      <input
+        id="passwordConfirm"
+        type="password"
+        name="passwordConfirm"
+        required
+        minlength="12"
+      >
+    </div>
+
+    <p>Règles du mot de passe :</p>
+    <ul>
+      <li>Minimum 8 caractères</li>
+      <li>Au moins une majuscule</li>
+      <li>Au moins une minuscule</li>
+      <li>Au moins un chiffre</li>
+      <li>Au moins un caractère spécial</li>
+    </ul>
 
     <button type="submit">S'inscrire</button>
   </form>

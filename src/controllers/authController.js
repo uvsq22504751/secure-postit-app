@@ -1,7 +1,7 @@
 const authService = require('../services/auth.service');
 
 async function showSignupPage(req, res) {
-  res.render('signup', { error: null });
+  res.render('signup', { error: null, old: {} });
 }
 
 async function signup(req, res) {
@@ -9,17 +9,26 @@ async function signup(req, res) {
     const { username, password, passwordConfirm } = req.body;
 
     if (password !== passwordConfirm) {
-        throw new Error('Les mots de passe ne correspondent pas.');
+      throw new Error('Les mots de passe ne correspondent pas.');
     }
 
     const user = await authService.registerUser(username, password);
 
-    req.session.user = user;
+    req.session.regenerate((err) => {
+      if (err) {
+        return res.status(500).render('signup', {
+          error: 'Erreur de session.',
+          old: { username }
+        });
+      }
 
-    res.redirect('/');
+      req.session.user = user;
+      res.redirect('/');
+    });
   } catch (error) {
     res.status(400).render('signup', {
-      error: error.message
+      error: error.message,
+      old: { username: req.body.username || '' }
     });
   }
 }

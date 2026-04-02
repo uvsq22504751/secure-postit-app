@@ -1,10 +1,9 @@
 const bcrypt = require('bcrypt');
+const env = require('../config/env');
 const userModel = require('../models/userModel');
 
-const BCRYPT_ROUNDS = 10;
-
 function validateUsername(username) {
-  const cleanUsername = String(username || '').trim();
+  const cleanUsername = String(username || '').trim().toLowerCase();
 
   if (!cleanUsername) {
     throw new Error("Nom d'utilisateur requis.");
@@ -18,8 +17,12 @@ function validateUsername(username) {
     throw new Error("Le nom d'utilisateur est trop long.");
   }
 
-  if (cleanUsername.toLowerCase() === 'guest') {
-    throw new Error("Le nom guest est réservé.");
+  if (!/^[a-z0-9_.-]+$/.test(cleanUsername)) {
+    throw new Error("Le nom d'utilisateur contient des caractères non autorisés.");
+  }
+
+  if (['guest', 'admin', 'root', 'system'].includes(cleanUsername)) {
+    throw new Error("Ce nom d'utilisateur est réservé.");
   }
 
   return cleanUsername;
@@ -52,7 +55,7 @@ function validatePassword(password) {
     throw new Error('Le mot de passe doit contenir au moins un chiffre.');
   }
 
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(cleanPassword)) {
+  if (!/[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];'`~]/.test(cleanPassword)) {
     throw new Error('Le mot de passe doit contenir au moins un caractère spécial.');
   }
 
@@ -64,17 +67,14 @@ async function registerUser(username, password) {
   const cleanPassword = validatePassword(password);
 
   const existingUser = await userModel.findByUsername(cleanUsername);
-
   if (existingUser) {
     throw new Error("Nom d'utilisateur déjà pris.");
   }
 
-  const passwordHash = await bcrypt.hash(cleanPassword, BCRYPT_ROUNDS);
-
+  const passwordHash = await bcrypt.hash(cleanPassword, env.bcryptRounds);
   const insertedUser = await userModel.createUser(cleanUsername, passwordHash);
 
   await userModel.createDefaultPermissions(insertedUser.lastID);
-
 
   return {
     id: insertedUser.lastID,
@@ -87,6 +87,7 @@ async function registerUser(username, password) {
     }
   };
 }
+
 module.exports = {
   registerUser
 };
