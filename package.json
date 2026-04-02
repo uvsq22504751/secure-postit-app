@@ -1,0 +1,32 @@
+{
+  "name": "secure-postit-app",
+  "version": "0.1.0",
+  "description": "Application sociale de post-it en Node.js pour TP IRS",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "check": "node --check src/server.js",
+    "init-db": "node src/db/init.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "sqlite",
+    "postit"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "nunjucks": "^3.2.4",
+    "sqlite3": "^6.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
