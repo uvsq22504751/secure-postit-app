@@ -12,23 +12,31 @@
     {% else %}
       {% set currentBoardSlug = 'main' %}
     {% endif %}
+
     <header class="topbar">
-      <a class="brand" href="/{{ '' if currentBoardSlug == 'main' else currentBoardSlug }}">Secure Post-it</a>
+      <a class="brand" href="/{{ '' if currentBoardSlug == 'main' else currentBoardSlug }}">
+        Secure Post-it
+      </a>
+
       <nav class="topnav">
         {% if not currentUser %}
           <a href="/signup">Inscription</a>
         {% endif %}
+
         {% if currentUser and currentUser.permissions and currentUser.permissions.isAdmin %}
           <a href="/admin">Administration</a>
         {% endif %}
+
         {% if currentUser %}
           <form action="/logout" method="post">
-            <input type="hidden" name="boardSlug" value="{{ currentBoardSlug }}" />
-            <button type="submit">Deconnexion</button>
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            <input type="hidden" name="boardSlug" value="{{ currentBoardSlug }}">
+            <button type="submit">Déconnexion</button>
           </form>
         {% endif %}
       </nav>
     </header>
+
     {% if notice %}
       <p class="notice">{{ notice }}</p>
     {% endif %}
