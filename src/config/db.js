@@ -1,9 +1,15 @@
-const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
 const env = require('./env');
 
-const db = new sqlite3.Database(env.dbPath);
-db.serialize(() => {
-	db.run('PRAGMA foreign_keys = ON');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/postitdb',
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
+    : false
 });
 
-module.exports = db;
+console.log('Using PostgreSQL database');
+
+module.exports = {
+  pool
+};

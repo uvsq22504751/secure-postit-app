@@ -2,11 +2,16 @@ const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path');
 const env = require('../config/env');
-const db = require('../config/db');
-const { get, run } = require('./sqlite');
+const { pool } = require('../config/db');
+const { get, run, closeConnection } = require('./database');
 
 const schemaPath = path.join(__dirname, 'schema.sql');
+
 const sql = fs.readFileSync(schemaPath, 'utf8');
+
+async function executeSchema() {
+  await pool.query(sql);
+}
 
 async function ensureSpecialUsers() {
   const guestPasswordHash = await bcrypt.hash('guest-disabled', 10);
@@ -19,48 +24,59 @@ async function ensureSpecialUsers() {
   let adminId = admin?.id;
 
   if (!guestId) {
-    const insertedGuest = await run('INSERT INTO users (username, password_hash) VALUES (?, ?)', ['guest', guestPasswordHash]);
-    guestId = insertedGuest.lastID;
+    const insertedGuest = await run(
+      'INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id',
+      ['guest', guestPasswordHash]
+    );
+
+    guestId = insertedGuest.rows[0].id;
   }
 
   if (!adminId) {
-    const insertedAdmin = await run('INSERT INTO users (username, password_hash) VALUES (?, ?)', ['admin', adminPasswordHash]);
-    adminId = insertedAdmin.lastID;
+    const insertedAdmin = await run(
+      'INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id',
+      ['admin', adminPasswordHash]
+    );
+
+    adminId = insertedAdmin.rows[0].id;
   }
 
   await run(
     `INSERT INTO user_permissions (user_id, can_create, can_update, can_delete, is_admin)
-     VALUES (?, 0, 0, 0, 0)
+     VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(user_id)
-     DO UPDATE SET can_create = 0, can_update = 0, can_delete = 0, is_admin = 0`,
-    [guestId]
+     DO UPDATE SET can_create = EXCLUDED.can_create,
+                   can_update = EXCLUDED.can_update,
+                   can_delete = EXCLUDED.can_delete,
+                   is_admin = EXCLUDED.is_admin`,
+    [guestId, false, false, false, false]
   );
 
   await run(
     `INSERT INTO user_permissions (user_id, can_create, can_update, can_delete, is_admin)
-     VALUES (?, 1, 1, 1, 1)
+     VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(user_id)
-     DO UPDATE SET can_create = 1, can_update = 1, can_delete = 1, is_admin = 1`,
-    [adminId]
+     DO UPDATE SET can_create = EXCLUDED.can_create,
+                   can_update = EXCLUDED.can_update,
+                   can_delete = EXCLUDED.can_delete,
+                   is_admin = EXCLUDED.is_admin`,
+    [adminId, true, true, true, true]
   );
 }
 
-db.exec(sql, (error) => {
-  if (error) {
+async function main() {
+  try {
+    await executeSchema();
+    await ensureSpecialUsers();
+
+    console.log('Database initialized successfully.');
+    console.log(`Admin account: admin / ${env.adminDefaultPassword}`);
+  } catch (error) {
     console.error('Database initialization failed:', error.message);
     process.exitCode = 1;
-    return;
+  } finally {
+    await closeConnection();
   }
+}
 
-  ensureSpecialUsers()
-    .then(() => {
-      console.log('Database initialized successfully.');
-      console.log(`Admin account: admin / ${env.adminDefaultPassword}`);
-      db.close();
-    })
-    .catch((seedError) => {
-      console.error('Special user seed failed:', seedError.message);
-      process.exitCode = 1;
-      db.close();
-    });
-});
+main();

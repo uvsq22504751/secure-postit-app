@@ -1,4 +1,4 @@
-const { all, get, run } = require('../db/sqlite');
+const { all, get, run } = require('../db/database');
 
 function mapPostitRow(row) {
   return {
@@ -74,12 +74,12 @@ async function getOrCreateBoard(slug) {
   if (!board) {
     const title = safeSlug === 'main' ? 'Tableau principal' : `Tableau ${safeSlug}`;
     const created = await run(
-      'INSERT INTO boards (slug, title) VALUES (?, ?)',
+      'INSERT INTO boards (slug, title) VALUES (?, ?) RETURNING id',
       [safeSlug, title]
     );
 
     board = {
-      id: created.lastID,
+      id: created.rows[0].id,
       slug: safeSlug,
       title,
       created_at: null
@@ -116,13 +116,13 @@ async function createBoard(slug, title) {
   const cleanTitle = String(title || '').trim() || `Tableau ${safeSlug}`;
 
   const inserted = await run(
-    'INSERT INTO boards (slug, title) VALUES (?, ?)',
+    'INSERT INTO boards (slug, title) VALUES (?, ?) RETURNING id',
     [safeSlug, cleanTitle]
   );
 
   return get(
     'SELECT id, slug, title, created_at FROM boards WHERE id = ?',
-    [inserted.lastID]
+    [inserted.rows[0].id]
   );
 }
 
@@ -215,7 +215,7 @@ async function createPostit({ boardSlug, authorId, content, x, y }) {
 
   const inserted = await run(
     `INSERT INTO postits (board_id, author_id, content, pos_x, pos_y, z_index)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?) RETURNING id`,
     [
       board.id,
       numericAuthorId,
@@ -226,7 +226,7 @@ async function createPostit({ boardSlug, authorId, content, x, y }) {
     ]
   );
 
-  return getPostitById(inserted.lastID);
+  return getPostitById(inserted.rows[0].id);
 }
 
 async function updatePostit({ postitId, content, x, y, bringToFront }) {

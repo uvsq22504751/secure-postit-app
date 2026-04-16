@@ -8,7 +8,7 @@ Stack proposee pour le projet:
 
 - Node.js + Express
 - Nunjucks pour les vues serveur
-- SQLite pour rester simple en developpement
+- PostgreSQL pour la base de donnees
 - Sessions avec `express-session`
 - `bcrypt` pour les mots de passe
 - HTTPS prevu des le depart dans l'architecture
@@ -69,7 +69,7 @@ Ce schema couvre deja les besoins obligatoires IRS:
 ## Strategie de commits conseillee
 
 1. `chore: initialise express project structure`
-2. `feat: add sqlite schema and database bootstrap`
+2. `feat: add postgresql schema and database bootstrap`
 3. `feat: implement signup and login with sessions`
 4. `feat: display post-its on main board`
 5. `feat: create post-its with ajax on double click`
@@ -81,9 +81,12 @@ Ce schema couvre deja les besoins obligatoires IRS:
 
 ## Lancement prevu
 
+Vous devez avoir PostgreSQL installe et en cours d'execution.
+
 ```bash
 npm install
 copy .env.example .env
+# Editez .env pour configurer DATABASE_URL avec vos parametres PostgreSQL
 npm run init-db
 npm run dev
 ```

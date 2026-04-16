@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { all, get, run } = require('../db/sqlite');
+const { all, get, run } = require('../db/database');
 
 const SALT_ROUNDS = 12;
 
@@ -225,18 +225,18 @@ async function createUser(username, password) {
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
   const inserted = await run(
-    'INSERT INTO users (username, password_hash) VALUES (?, ?)',
+    'INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id',
     [cleanUsername, passwordHash]
   );
 
   await run(
     `INSERT INTO user_permissions (user_id, can_create, can_update, can_delete, is_admin)
-     VALUES (?, 1, 1, 1, 0)`,
-    [inserted.lastID]
+     VALUES (?, true, true, true, false)`,
+    [inserted.rows[0].id]
   );
 
   return {
-    id: inserted.lastID,
+    id: inserted.rows[0].id,
     username: cleanUsername,
     permissions: {
       canCreate: true,
