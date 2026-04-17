@@ -27,10 +27,10 @@ if ($pgTest) {
 Write-Host "✓ PostgreSQL connecté" -ForegroundColor Green
 
 # Démarrer l'application
-Write-Host "`n🚀 Démarrage de l'application..." -ForegroundColor Yellow
+Write-Host "`n Démarrage de l'application..." -ForegroundColor Yellow
 Write-Host "Accédez à: http://localhost:3000" -ForegroundColor Cyan
 Write-Host "`nIdentifiants de test:" -ForegroundColor Cyan
-Write-Host "  Admin: admin / admin123" -ForegroundColor Cyan
+Write-Host "  Admin: admin / Admn@2026Secure!" -ForegroundColor Cyan
 Write-Host "  Guest: guest / guest-disabled (sans accès)" -ForegroundColor Cyan
 Write-Host ""
 
