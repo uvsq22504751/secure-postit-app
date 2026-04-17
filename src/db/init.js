@@ -39,6 +39,11 @@ async function ensureSpecialUsers() {
     );
 
     adminId = insertedAdmin.rows[0].id;
+  } else {
+    await run(
+      'UPDATE users SET password_hash = ? WHERE id = ?',
+      [adminPasswordHash, adminId]
+    );
   }
 
   await run(
@@ -63,21 +68,3 @@ async function ensureSpecialUsers() {
     [adminId, true, true, true, true]
   );
 }
-
-async function main() {
-  try {
-    await executeSchema();
-    await ensureSpecialUsers();
-
-    console.log('Database initialized successfully.');
-    console.log(`Admin account: admin / ${env.adminDefaultPassword}`);
-  } catch (error) {
-    const details = error && error.message ? error.message : String(error);
-    console.error('Database initialization failed:', details);
-    process.exitCode = 1;
-  } finally {
-    await closeConnection();
-  }
-}
-
-main();
