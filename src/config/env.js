@@ -9,5 +9,5 @@ module.exports = {
   httpsEnabled: process.env.HTTPS_ENABLED === 'true',
   httpsKeyPath: path.resolve(process.cwd(), process.env.HTTPS_KEY_PATH || './certs/key.pem'),
   httpsCertPath: path.resolve(process.cwd(), process.env.HTTPS_CERT_PATH || './certs/cert.pem'),
-  adminDefaultPassword: process.env.ADMIN_DEFAULT_PASSWORD || 'admin123'
+  adminDefaultPassword: process.env.ADMIN_DEFAULT_PASSWORD || 'Admn@2026Secure!'
 };
